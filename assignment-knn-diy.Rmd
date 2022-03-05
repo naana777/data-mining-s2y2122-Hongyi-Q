@@ -24,18 +24,79 @@ Choose a suitable dataset from [this](https://github.com/HAN-M3DM-Data-Mining/as
 
 
 ## Business Understanding
-text and code here
+The study use temperature, humidity, light, co2 and humidty ratio to analyzed whether a room is occuped. According to the table, there are large amount of data so machine learning can be useful.
 
 ## Data Understanding
-text and code here
+url <- "https://raw.githubusercontent.com/HAN-M3DM-Data-Mining/assignments/master/datasets/KNN-occupancy.csv"
+rawDF <- read_csv(url)
+str(rawDF)
 
 ## Data Preparation
-text and code here
+The first variable 'date' do not contain any relvant information for making the analyze, so we can delete from the dataset.
+cleanDF <- rawDF[-1]
+head(cleanDF)
+
+In the study 1 indicates the room is occupied, 0 indicates not occupied
+
+cntDiag <- table(cleanDF$Occupancy)
+propDiag <- round(prop.table(cntDiag) * 100 , digits = 1)
+
+cntDiag
+
+   0    1 
+6414 1729 
+
+propDiag
+
+   0    1 
+78.8 21.2 
+
+cleanDF$Occupancy <- factor(cleanDF$Occupancy, levels = c("0", "1"), labels = c("not occupied ", "occupied")) %>% relevel("occupied")
+
+The study consist of four elements to analyze.
+
+summary(cleanDF[c("Temperature", "Light", "CO2", "HumidityRatio")])
+
+Temperature        Light             CO2         HumidityRatio     
+ Min.   :19.00   Min.   :   0.0   Min.   : 412.8   Min.   :0.002674  
+ 1st Qu.:19.70   1st Qu.:   0.0   1st Qu.: 439.0   1st Qu.:0.003078  
+ Median :20.39   Median :   0.0   Median : 453.5   Median :0.003801  
+ Mean   :20.62   Mean   : 119.5   Mean   : 606.5   Mean   :0.003863  
+ 3rd Qu.:21.39   3rd Qu.: 256.4   3rd Qu.: 638.8   3rd Qu.:0.004352  
+ Max.   :23.18   Max.   :1546.3   Max.   :2028.5   Max.   :0.006476  
+ 
+ The result shows CO2 have a larger impact on the distance calculation than other elements. To solve the problem we need to apply normalization to rescale all features to a standard range of values.
+ 
+ normalize <- function(x) { # Function takes in a vector
+  return ((x - min(x)) / (max(x) - min(x))) # distance of item value - minimum vector value divided by the range of all vector values
+}
+
+testSet1 <- c(1:5)
+testSet2 <- c(1:5) * 10
+
+cat("testSet1:", testSet1, "\n")
+
+cat("Normalized testSet1:", normalize(testSet1), "\n")
+
+cat("Normalized testSet2:", normalize(testSet2))
+
+nCols <- dim(cleanDF)[2]
+cleanDF_n <- sapply(2:nCols,
+                    function(x) {
+normalize(cleanDF[,x])
+}) %>% as.data.frame()
+
+summary(cleanDF[c("Temperature", "Light", "CO2","HumidityRatio")])
+
+Train the data
+trainDF_feat <- cleanDF_n[1:4071, 4]
+testDF_feat <- cleanDF_n[4072:8143, 4]
 
 ## Modeling
-text and code here
+cleanDF_test_pred <- knn(train = as.matrix(trainDF_feat), test = as.matrix(testDF_feat), cl = as.matrix(trainDF_labels), k = 21)
+head(cleanDF_test_pred)
 
 ## Evaluation and Deployment
-text and code here
+confusionMatrix(cleanDF_test_pred, testDF_labels[[1]], positive = NULL, dnn = c("Prediction", "True"))
 
 reviewer adds suggestions for improving the model
