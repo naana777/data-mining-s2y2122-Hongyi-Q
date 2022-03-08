@@ -68,7 +68,7 @@ Temperature        Light             CO2         HumidityRatio
  The result shows CO2 have a larger impact on the distance calculation than other elements. To solve the problem we need to apply normalization to rescale all features to a standard range of values.
  
  normalize <- function(x) { # Function takes in a vector
-  return ((x - max(x)) / (max(x) - min(x))) # distance of item value - minimum vector value divided by the range of all vector values
+  return ((x - min(x)) / (max(x) - min(x))) # distance of item value - minimum vector value divided by the range of all vector values
 }
 
 testSet1 <- c(1:5)
